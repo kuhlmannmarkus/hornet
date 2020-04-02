@@ -150,8 +150,12 @@ func processIncomingTx(incomingTx *hornet.Transaction, request *rqueue.Request, 
 	if !tangle.IsNodeSynced() && request != nil && gossip.RequestQueue().Empty() {
 		// we trigger the milestone solidifier in order to solidify milestones
 		// which should be solid given that the request queue is empty
-		milestoneSolidifierWorkerPool.TrySubmit(milestone.Index(0), true)
+		TriggerSolidifier()
 	}
+}
+
+func TriggerSolidifier() {
+	milestoneSolidifierWorkerPool.TrySubmit(milestone.Index(0), true)
 }
 
 func onReceivedValidMilestone(cachedBndl *tangle.CachedBundle) {

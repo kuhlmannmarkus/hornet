@@ -14,11 +14,13 @@ import (
 
 	"github.com/gohornet/hornet/pkg/model/tangle"
 	"github.com/gohornet/hornet/plugins/gossip"
+	tanglePlugin "github.com/gohornet/hornet/plugins/tangle"
 )
 
 func init() {
 	addEndpoint("getRequests", getRequests, implementedAPIcalls)
 	addEndpoint("searchConfirmedApprover", searchConfirmedApprover, implementedAPIcalls)
+	addEndpoint("triggerSolidifier", triggerSolidifier, implementedAPIcalls)
 }
 
 func getRequests(_ interface{}, c *gin.Context, _ <-chan struct{}) {
@@ -179,4 +181,20 @@ func searchConfirmedApprover(i interface{}, c *gin.Context, _ <-chan struct{}) {
 
 	e.Error = fmt.Sprintf("No confirmed approver found: %s", query.TxHash)
 	c.JSON(http.StatusInternalServerError, e)
+}
+
+func triggerSolidifier(i interface{}, c *gin.Context, _ <-chan struct{}) {
+	e := ErrorReturn{}
+	trigger := &TriggerSolidifier{}
+
+	err := mapstructure.Decode(i, trigger)
+	if err != nil {
+		e.Error = "Internal error"
+		c.JSON(http.StatusInternalServerError, e)
+		return
+	}
+
+	tanglePlugin.TriggerSolidifier()
+
+	c.Status(http.StatusAccepted)
 }
